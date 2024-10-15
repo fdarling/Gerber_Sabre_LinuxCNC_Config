@@ -201,8 +201,20 @@ class Saftronics_GP5_Modbus_Driver:
         self.write_register(VFD_REG_COMMAND_OPERATIONAL_SIGNALS, 0x0)
 
         # keep looping when there are no exceptions
+        run_count = 0
+        error_count = 0
         while True:
-            self.run()
+            try:
+                run_count += 1
+                self.run()
+                # no errors if we get here
+                if error_count > 0:
+                    error_count -= 1
+            except minimalmodbus.InvalidResponseError as e:
+                print("run_count", run_count, "error_count", error_count, "exception", e)
+                error_count += 1
+                if error_count > 20:
+                    raise
 
 def resetInputPinsAndParams(h):
     h['minimum-rpm'] = 0
